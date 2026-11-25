@@ -1,0 +1,474 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}National Land Governance Evidence &amp; Analytics Dashboard — LANDWISE{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet.js CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+  .lw-chart-container {
+    position: relative;
+    height: 320px;
+    width: 100%;
+  }
+  #cadastralMap {
+    height: 480px;
+    width: 100%;
+    border-radius: 16px;
+    z-index: 1;
+  }
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(27, 58, 47, 0.2);
+    font-family: 'Inter', sans-serif;
+  }
+  .leaflet-popup-content {
+    margin: 14px 16px;
+    line-height: 1.5;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container-fluid px-3 px-xl-5">
+
+    <!-- Header Banner -->
+    <div class="card border-0 rounded-4 shadow-sm p-4 p-md-5 mb-4" style="background: linear-gradient(135deg, #1B3A2F 0%, #0F2920 100%); color: #FFFFFF;">
+      <div class="row align-items-center g-3">
+        <div class="col-lg-8">
+          <span class="badge bg-warning text-dark py-2 px-3 fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
+            Real-Time Policy Intelligence
+          </span>
+          <h1 class="font-serif fw-bold text-white mb-2" style="font-size: clamp(2rem, 3.2vw, 2.7rem);">
+            National Land Governance Evidence Dashboard
+          </h1>
+          <p class="text-white-50 mb-0 small" style="max-width: 680px; font-size: 0.95rem;">
+            Empirical intelligence tracking policy research distribution, state cadastral coverage, publication growth trends, and highest-impact agrarian citations.
+          </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+          <div class="d-inline-flex align-items-center gap-2 p-2 px-3 rounded-pill" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(196, 165, 116, 0.4);">
+            <div class="p-1 rounded-circle bg-success" style="width: 8px; height: 8px;"></div>
+            <span class="small text-light">Real-Time Analytical Indexing Active</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+      
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-medium">Repository Assets</span>
+            <div class="p-2 rounded-3" style="background-color: rgba(31, 107, 74, 0.08); color: var(--lw-emerald-green);">
+              <i class="bi bi-file-earmark-ruled" style="font-size: 1.25rem;"></i>
+            </div>
+          </div>
+          <div class="font-serif fw-bold text-dark mb-1" style="font-size: 2.2rem; color: var(--lw-forest-green) !important;">
+            {{ kpis.total_documents|default:"12,480+" }}
+          </div>
+          <div class="small text-muted">
+            <span class="text-success fw-semibold"><i class="bi bi-arrow-up-right"></i> +32</span> deposited this month
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-medium">Document Views</span>
+            <div class="p-2 rounded-3" style="background-color: rgba(196, 165, 116, 0.12); color: #8C6F3B;">
+              <i class="bi bi-eye" style="font-size: 1.25rem;"></i>
+            </div>
+          </div>
+          <div class="font-serif fw-bold text-dark mb-1" style="font-size: 2.2rem; color: var(--lw-forest-green) !important;">
+            {{ kpis.total_views|default:"84,200+" }}
+          </div>
+          <div class="small text-muted">
+            Across universities &amp; ministries
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-medium">Total Paper Downloads</span>
+            <div class="p-2 rounded-3" style="background-color: rgba(31, 107, 74, 0.08); color: var(--lw-emerald-green);">
+              <i class="bi bi-download" style="font-size: 1.25rem;"></i>
+            </div>
+          </div>
+          <div class="font-serif fw-bold text-dark mb-1" style="font-size: 2.2rem; color: var(--lw-forest-green) !important;">
+            {{ kpis.total_downloads|default:"29,400+" }}
+          </div>
+          <div class="small text-muted">
+            <span class="text-success fw-semibold">100%</span> Open Access CC-BY 4.0
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-medium">State &amp; UT Coverage</span>
+            <div class="p-2 rounded-3" style="background-color: rgba(196, 165, 116, 0.12); color: #8C6F3B;">
+              <i class="bi bi-geo-alt" style="font-size: 1.25rem;"></i>
+            </div>
+          </div>
+          <div class="font-serif fw-bold text-dark mb-1" style="font-size: 2.2rem; color: var(--lw-forest-green) !important;">
+            28 / 28
+          </div>
+          <div class="small text-muted">
+            All States &amp; 8 Union Territories
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Geospatial Cadastral & Regional Research Distribution (Leaflet.js) -->
+    <div class="card border-0 rounded-4 shadow-sm p-4 p-md-5 mb-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-3 pb-3 border-bottom">
+        <div>
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 mb-2 fw-semibold" style="font-size: 0.72rem;">
+            Interactive Cadastral GIS
+          </span>
+          <h4 class="font-serif fw-bold text-dark mb-1">Geographic Research Distribution &amp; Cadastral Hubs</h4>
+          <p class="text-muted small mb-0">Interactive Leaflet.js mapping of provincial land records, tribal forest tenure clusters, and agrarian research institutes.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-light text-dark border px-3 py-2 small">
+            <i class="bi bi-pin-map-fill text-success me-1"></i> 10 National Clusters
+          </span>
+          <a href="{% url 'repository:document_list' %}" class="lw-btn lw-btn-outline py-2 px-3 small">
+            Browse All Records &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Leaflet Map Container -->
+      <div id="cadastralMap"></div>
+
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pt-3 mt-2 text-muted small border-top">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <span><span class="d-inline-block rounded-circle me-1" style="width: 10px; height: 10px; background-color: #1F6B4A;"></span> High Density (&gt; 1,500 Papers)</span>
+          <span><span class="d-inline-block rounded-circle me-1" style="width: 10px; height: 10px; background-color: #C4A574;"></span> State Survey Node</span>
+        </div>
+        <span class="text-muted fst-italic">Click any marker or cluster circle to inspect state policy focus.</span>
+      </div>
+    </div>
+
+    <!-- 2. Charts Row 1: Domain Distribution & State Coverage -->
+    <div class="row g-4 mb-4">
+      
+      <!-- Chart 1: Domain Distribution -->
+      <div class="col-lg-5">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div>
+              <h5 class="font-serif fw-bold text-dark mb-0">Policy Domain Distribution</h5>
+              <span class="small text-muted">Empirical papers clustered by thematic area</span>
+            </div>
+            <span class="badge bg-light text-muted border">5 Domains</span>
+          </div>
+
+          <div class="lw-chart-container d-flex align-items-center justify-content-center">
+            <canvas id="domainDoughnutChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 2: State Coverage -->
+      <div class="col-lg-7">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div>
+              <h5 class="font-serif fw-bold text-dark mb-0">Geographic Coverage by State</h5>
+              <span class="small text-muted">Number of indexed research documents &amp; cadastral surveys</span>
+            </div>
+            <span class="badge bg-light text-muted border">Top States</span>
+          </div>
+
+          <div class="lw-chart-container">
+            <canvas id="stateBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 3. Charts Row 2: Ingestion Timeline & Top Cited Documents -->
+    <div class="row g-4 mb-4">
+      
+      <!-- Chart 3: Ingestion Growth Timeline -->
+      <div class="col-lg-7">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div>
+              <h5 class="font-serif fw-bold text-dark mb-0">Evidence Ingestion &amp; Growth Trajectory</h5>
+              <span class="small text-muted">Monthly additions to national research archives</span>
+            </div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle">Yearly Index</span>
+          </div>
+
+          <div class="lw-chart-container">
+            <canvas id="timelineLineChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart 4: Top Downloaded Documents -->
+      <div class="col-lg-5">
+        <div class="card border-0 rounded-4 shadow-sm p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+            <div>
+              <h5 class="font-serif fw-bold text-dark mb-0">Most Downloaded Working Papers</h5>
+              <span class="small text-muted">Highest citation &amp; policy adoption volume</span>
+            </div>
+            <span class="badge bg-light text-muted border">Top Evidence</span>
+          </div>
+
+          <div class="lw-chart-container">
+            <canvas id="topDocsBarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet.js 1.9.4 -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- Chart.js 4.4.1 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // -------------------------------------------------------------
+  // Leaflet.js Cadastral & Regional Map Initialization
+  // -------------------------------------------------------------
+  const mapElement = document.getElementById('cadastralMap');
+  if (mapElement && typeof L !== 'undefined') {
+    // Center of India
+    const map = L.map('cadastralMap', {
+      center: [22.8, 79.2],
+      zoom: 5,
+      minZoom: 4,
+      maxZoom: 9,
+      scrollWheelZoom: false
+    });
+
+    // Elegant muted CartoDB Positron tiles for high-end cartography
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    const geoHubs = JSON.parse('{{ geo_markers_json|escapejs }}');
+
+    geoHubs.forEach(function(hub) {
+      const radiusSize = Math.max(12, Math.min(28, hub.count / 100));
+      const fillColor = hub.count > 1500 ? '#1F6B4A' : '#C4A574';
+
+      const circle = L.circleMarker([hub.lat, hub.lng], {
+        radius: radiusSize,
+        fillColor: fillColor,
+        color: '#FFFFFF',
+        weight: 2,
+        opacity: 0.95,
+        fillOpacity: 0.75
+      }).addTo(map);
+
+      const popupHtml = `
+        <div style="min-width: 220px;">
+          <div style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: #C4A574; letter-spacing: 0.05em; margin-bottom: 2px;">
+            ${hub.state} Cadastral Node
+          </div>
+          <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; font-weight: 700; color: #1B3A2F; margin-bottom: 6px;">
+            ${hub.count.toLocaleString()} Research Assets
+          </div>
+          <div style="font-size: 0.8rem; color: #4A5568; margin-bottom: 8px; line-height: 1.4;">
+            <strong>Primary Focus:</strong> ${hub.focus}
+          </div>
+          <div style="font-size: 0.75rem; color: #718096; margin-bottom: 10px;">
+            <i class="bi bi-building"></i> ${hub.hub}
+          </div>
+          <a href="/repository/?q=${encodeURIComponent(hub.state)}" style="display: inline-block; background-color: #1B3A2F; color: #FFFFFF; font-size: 0.75rem; font-weight: 600; padding: 6px 14px; border-radius: 9999px; text-decoration: none;">
+            Filter State Papers &rarr;
+          </a>
+        </div>
+      `;
+
+      circle.bindPopup(popupHtml);
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Chart.js Visualizations
+  // -------------------------------------------------------------
+  if (typeof Chart === 'undefined') {
+    console.warn("Chart.js failed to load from CDN.");
+    return;
+  }
+
+  // Common Typography & Palette Settings
+  Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+  Chart.defaults.color = '#5C6B62';
+
+  // 1. Domain Doughnut Chart
+  const domainData = JSON.parse('{{ domain_chart_json|escapejs }}');
+  const ctxDomain = document.getElementById('domainDoughnutChart');
+  if (ctxDomain) {
+    new Chart(ctxDomain, {
+      type: 'doughnut',
+      data: {
+        labels: domainData.labels,
+        datasets: [{
+          data: domainData.data,
+          backgroundColor: domainData.colors,
+          borderWidth: 2,
+          borderColor: '#FFFFFF',
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, padding: 14, font: { size: 11 } }
+          }
+        },
+        cutout: '62%'
+      }
+    });
+  }
+
+  // 2. State Bar Chart
+  const stateData = JSON.parse('{{ state_chart_json|escapejs }}');
+  const ctxState = document.getElementById('stateBarChart');
+  if (ctxState) {
+    new Chart(ctxState, {
+      type: 'bar',
+      data: {
+        labels: stateData.labels,
+        datasets: [{
+          label: 'Documents Indexed',
+          data: stateData.data,
+          backgroundColor: '#1F6B4A',
+          borderRadius: 8,
+          barThickness: 24,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(237, 230, 217, 0.7)' },
+            ticks: { font: { size: 11 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  // 3. Timeline Area / Line Chart
+  const timelineData = JSON.parse('{{ timeline_chart_json|escapejs }}');
+  const ctxTimeline = document.getElementById('timelineLineChart');
+  if (ctxTimeline) {
+    new Chart(ctxTimeline, {
+      type: 'line',
+      data: {
+        labels: timelineData.labels,
+        datasets: [{
+          label: 'Cumulative Documents',
+          data: timelineData.data,
+          borderColor: '#1B3A2F',
+          backgroundColor: 'rgba(31, 107, 74, 0.08)',
+          fill: true,
+          tension: 0.35,
+          pointBackgroundColor: '#C4A574',
+          pointBorderColor: '#FFFFFF',
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          borderWidth: 2.5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(237, 230, 217, 0.7)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. Top Downloaded Documents Horizontal Bar
+  const topDocsData = JSON.parse('{{ top_docs_chart_json|escapejs }}');
+  const ctxTopDocs = document.getElementById('topDocsBarChart');
+  if (ctxTopDocs) {
+    new Chart(ctxTopDocs, {
+      type: 'bar',
+      data: {
+        labels: topDocsData.labels,
+        datasets: [{
+          label: 'Downloads',
+          data: topDocsData.data,
+          backgroundColor: '#C4A574',
+          borderRadius: 6,
+          barThickness: 16
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: 'rgba(237, 230, 217, 0.7)' }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { font: { size: 10 } }
+          }
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

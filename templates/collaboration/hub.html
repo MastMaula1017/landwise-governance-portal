@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inter-Agency Collaboration Hub — LANDWISE{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container-fluid px-3 px-xl-5">
+
+    <!-- Header -->
+    <div class="card border-0 rounded-4 shadow-sm p-4 p-md-5 mb-4" style="background: linear-gradient(135deg, #1B3A2F 0%, #0F2920 100%); color: #FFFFFF;">
+      <div class="row align-items-center g-3">
+        <div class="col-lg-8">
+          <span class="badge bg-warning text-dark py-2 px-3 fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
+            Multi-Stakeholder Policy Network
+          </span>
+          <h1 class="font-serif fw-bold text-white mb-2">Evidence-Based Collaboration Hub</h1>
+          <p class="text-white-50 mb-0 small" style="max-width: 680px;">
+            Facilitating direct, accredited dialogue between academic researchers, state revenue departments, and national policymakers on ongoing land reforms, FRA tenure security, and cadastral modernization.
+          </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+          <a href="{% url 'repository:document_list' %}" class="btn btn-outline-light rounded-pill py-2 px-4 small">
+            <i class="bi bi-book me-1"></i> Explore Research Papers
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+      
+      <!-- Left 8 Columns: Active Peer Discussion Threads -->
+      <div class="col-lg-8">
+        
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+              <h4 class="font-serif fw-bold text-dark mb-1">Recent Peer Discussions &amp; Commentary</h4>
+              <p class="text-muted small mb-0">Live dialogue across deposited working papers and directives.</p>
+            </div>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+              <i class="bi bi-chat-dots"></i> Live Feed
+            </span>
+          </div>
+
+          {% if recent_comments %}
+            <div class="d-flex flex-column gap-3">
+              {% for comment in recent_comments %}
+              <div class="p-3 rounded-3 border" style="background-color: #FAF8F3;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-dark small">{{ comment.user.get_full_name|default:comment.user.username }}</span>
+                    <span class="badge {{ comment.user.profile.role_badge_class }}" style="font-size: 0.65rem;">
+                      {{ comment.user.profile.get_role_display|slice:":12" }}
+                    </span>
+                    {% if comment.user.profile.institution %}
+                      <span class="text-muted small">&bull; {{ comment.user.profile.institution|truncatechars:35 }}</span>
+                    {% endif %}
+                  </div>
+                  <span class="text-muted small" style="font-size: 0.72rem;">{{ comment.created_at|timesince }} ago</span>
+                </div>
+
+                <p class="text-dark small mb-2" style="line-height: 1.6;">
+                  "{{ comment.body|truncatechars:180 }}"
+                </p>
+
+                <div class="pt-2 border-top d-flex align-items-center justify-content-between" style="font-size: 0.75rem;">
+                  <span class="text-muted">
+                    On Paper: 
+                    <a href="{{ comment.document.get_absolute_url }}" class="fw-semibold text-dark text-decoration-none">
+                      {{ comment.document.title|truncatechars:50 }}
+                    </a>
+                  </span>
+                  <a href="{{ comment.document.get_absolute_url }}#comments" class="text-success fw-semibold text-decoration-none">
+                    View Thread &rarr;
+                  </a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-chat-left-dots text-muted" style="font-size: 2.5rem;"></i>
+              <h5 class="font-serif fw-bold text-dark mt-2">No Active Commentary Threads Yet</h5>
+              <p class="small mb-0">Open any research paper in the repository to start a peer conversation.</p>
+            </div>
+          {% endif %}
+
+        </div>
+
+      </div>
+
+      <!-- Right 4 Columns: Most Discussed Documents & Stakeholder Guidelines -->
+      <div class="col-lg-4">
+        
+        <div class="card border-0 rounded-4 shadow-sm p-4 mb-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <h5 class="font-serif fw-bold text-dark mb-3">Trending Research Discussions</h5>
+          
+          {% if active_documents %}
+            <div class="d-flex flex-column gap-3">
+              {% for doc in active_documents %}
+              <div class="pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                <span class="badge bg-light text-success border small mb-1" style="font-size: 0.68rem;">{{ doc.category.name }}</span>
+                <h6 class="fw-bold mb-1" style="font-size: 0.92rem;">
+                  <a href="{{ doc.get_absolute_url }}#comments" class="text-dark text-decoration-none">
+                    {{ doc.title|truncatechars:65 }}
+                  </a>
+                </h6>
+                <div class="small text-muted d-flex align-items-center gap-2" style="font-size: 0.75rem;">
+                  <span><i class="bi bi-chat-text"></i> {{ doc.comments.count }} Comments</span>
+                  <span>&bull;</span>
+                  <span><i class="bi bi-download"></i> {{ doc.downloads }} Downloads</span>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="small text-muted mb-0">Discussion threads will populate as scholars contribute commentary.</p>
+          {% endif %}
+        </div>
+
+        <!-- Collaboration Guidelines -->
+        <div class="p-4 rounded-4" style="background: linear-gradient(135deg, rgba(27, 58, 47, 0.05) 0%, rgba(196, 165, 116, 0.1) 100%); border: 1px solid var(--lw-border-subtle);">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-shield-check text-success"></i>
+            <h6 class="fw-bold text-dark mb-0 font-serif">Collegiate Conduct Policy</h6>
+          </div>
+          <p class="small text-muted mb-0" style="line-height: 1.6;">
+            All commentary must uphold academic rigor, cite verified statutes or empirical data, and foster constructive inter-agency collaboration between state revenue departments and research scholars.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

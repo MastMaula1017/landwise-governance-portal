@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Notifications &amp; Activity Alerts — LANDWISE{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container py-3">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+
+        <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 mb-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap gap-2">
+            <div>
+              <h2 class="font-serif fw-bold text-dark mb-1">Notification Center</h2>
+              <p class="text-muted small mb-0">Platform updates, peer review alerts, and discussion replies.</p>
+            </div>
+            
+            {% if notifications %}
+              <form method="post" action="{% url 'collaboration:notifications' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1">
+                  <i class="bi bi-check-all me-1"></i> Mark All as Read
+                </button>
+              </form>
+            {% endif %}
+          </div>
+
+          {% if notifications %}
+            <div class="list-group list-group-flush">
+              {% for notif in notifications %}
+              <div class="list-group-item px-0 py-3 border-bottom d-flex align-items-start gap-3 {% if not notif.is_read %}bg-light rounded-3 px-3 mb-2{% endif %}">
+                <div class="p-2 rounded-circle mt-1" style="background-color: rgba(31, 107, 74, 0.1); color: var(--lw-emerald-green);">
+                  <i class="bi bi-bell-fill"></i>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="small text-dark mb-1">
+                    {% if notif.actor %}<strong>{{ notif.actor.get_full_name|default:notif.actor.username }}</strong>{% endif %}
+                    {{ notif.verb }}
+                  </div>
+                  <div class="small text-muted" style="font-size: 0.75rem;">
+                    {{ notif.created_at|timesince }} ago
+                  </div>
+                </div>
+                {% if notif.target_url %}
+                  <a href="{{ notif.target_url }}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 small">
+                    View
+                  </a>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-5 text-muted">
+              <i class="bi bi-bell-slash" style="font-size: 2.5rem;"></i>
+              <h5 class="font-serif fw-bold text-dark mt-3 mb-1">No Notifications</h5>
+              <p class="small mb-0">You are all caught up! New peer review feedback and comment replies will appear here.</p>
+            </div>
+          {% endif %}
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Saved Research Favourites — LANDWISE{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container-fluid px-3 px-xl-5">
+
+    <!-- Header -->
+    <div class="card border-0 rounded-4 shadow-sm p-4 p-md-5 mb-4" style="background: linear-gradient(135deg, #1B3A2F 0%, #0F2920 100%); color: #FFFFFF;">
+      <div class="row align-items-center g-3">
+        <div class="col-lg-8">
+          <span class="badge bg-warning text-dark py-2 px-3 fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
+            Personal Research Portfolio
+          </span>
+          <h1 class="font-serif fw-bold text-white mb-2">My Saved Favourites &amp; Reading List</h1>
+          <p class="text-white-50 mb-0 small" style="max-width: 650px;">
+            Bookmarked evidence documents, state cadastral assessments, and policy briefs saved for reference, citation, and offline study.
+          </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+          <a href="{% url 'repository:document_list' %}" class="btn btn-outline-light rounded-pill py-2 px-4 small">
+            <i class="bi bi-search me-1"></i> Browse More Research
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Favourites List Grid -->
+    {% if favourites %}
+      <div class="row g-4">
+        {% for fav in favourites %}
+        <div class="col-md-6 col-xl-4">
+          <div class="card border-0 shadow-sm rounded-4 h-100 p-4 d-flex flex-column" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+            
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.72rem;">
+                {{ fav.document.category.name }}
+              </span>
+              <span class="badge bg-light text-muted border" style="font-size: 0.7rem;">
+                Saved {{ fav.created_at|date:"d M Y" }}
+              </span>
+            </div>
+
+            <h5 class="font-serif fw-bold mb-2" style="font-size: 1.15rem; line-height: 1.35;">
+              <a href="{{ fav.document.get_absolute_url }}" class="text-dark" style="text-decoration: none;">
+                {{ fav.document.title|truncatechars:90 }}
+              </a>
+            </h5>
+
+            <div class="small text-muted mb-3 flex-grow-1">
+              <div class="fw-semibold text-dark mb-1">{{ fav.document.authors|truncatechars:40 }}</div>
+              {% if fav.document.institution %}
+                <div class="text-truncate" style="font-size: 0.78rem;">{{ fav.document.institution }}</div>
+              {% endif %}
+              <div class="mt-1 text-success small" style="font-size: 0.76rem;">
+                <i class="bi bi-geo-alt"></i> {{ fav.document.geography_region }}
+              </div>
+            </div>
+
+            <div class="pt-3 border-top mt-auto d-flex align-items-center justify-content-between">
+              <form method="post" action="{% url 'collaboration:toggle_favourite' slug=fav.document.slug %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'collaboration:favourites_list' %}">
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1" title="Remove from Favourites">
+                  <i class="bi bi-bookmark-x"></i> Remove
+                </button>
+              </form>
+
+              <a href="{% url 'repository:document_download' slug=fav.document.slug %}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1">
+                <i class="bi bi-download me-1"></i> Download
+              </a>
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card border-0 rounded-4 shadow-sm p-5 text-center" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+        <div class="py-5">
+          <i class="bi bi-bookmark-star text-muted" style="font-size: 3rem;"></i>
+          <h4 class="font-serif fw-bold text-dark mt-3 mb-2">No Saved Favourites Yet</h4>
+          <p class="text-muted small mx-auto mb-4" style="max-width: 480px;">
+            You haven't bookmarked any research papers yet. Explore the repository and click the "Save to Favourites" button on any paper to add it here.
+          </p>
+          <a href="{% url 'repository:document_list' %}" class="lw-btn lw-btn-primary py-2 px-4">
+            <span>Explore National Repository</span>
+          </a>
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

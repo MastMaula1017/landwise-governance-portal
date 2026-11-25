@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Account — LANDWISE National Platform{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background: linear-gradient(180deg, #FAF4E9 0%, #F4ECE0 100%); min-height: 85vh;">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        
+        <!-- Registration Card -->
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          
+          <!-- Header Banner -->
+          <div class="p-4 p-md-5 text-center" style="background: linear-gradient(135deg, rgba(27, 58, 47, 0.04) 0%, rgba(196, 165, 116, 0.08) 100%); border-bottom: 1px solid var(--lw-border-subtle);">
+            <div class="d-inline-flex align-items-center justify-content-center mb-3">
+              <svg width="40" height="40" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 26C10 26 12 14 26 10C26 10 26 22 14 26C12.5 26.5 11 26.3 10 26Z" fill="#1B3A2F" stroke="#1F6B4A" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M12 24C16 20 20 16 26 10" stroke="#C4A574" stroke-width="1.6" stroke-linecap="round"/>
+                <path d="M7 29C7 29 9 21 18 18C18 18 17 25 10 29C9 29.5 7.8 29.3 7 29Z" fill="#1F6B4A"/>
+              </svg>
+            </div>
+            <h2 class="font-serif fw-bold mb-2" style="font-size: 2.1rem; color: var(--lw-forest-green);">Join the LANDWISE Platform</h2>
+            <p class="text-muted small mx-auto mb-0" style="max-width: 540px;">
+              Create your accredited profile to contribute research, access policy documentation, collaborate on land governance reforms, or save reading favourites.
+            </p>
+          </div>
+
+          <!-- Form Body -->
+          <div class="p-4 p-md-5">
+            <form method="post" novalidate>
+              {% csrf_token %}
+
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 px-3 small rounded-3 mb-4">
+                  {{ form.non_field_errors }}
+                </div>
+              {% endif %}
+
+              <!-- 1. Stakeholder Role Selection -->
+              <div class="mb-4">
+                <label class="form-label fw-bold text-dark small text-uppercase" style="letter-spacing: 0.06em;">
+                  Select Stakeholder Role <span class="text-danger">*</span>
+                </label>
+                {{ form.role }}
+                <div class="form-text small mt-1 text-muted">
+                  Roles define your permissions (Researchers can upload &amp; manage submissions; Officials can access policy briefs; Students &amp; Public browse and favourite research).
+                </div>
+                {% if form.role.errors %}
+                  <div class="text-danger small mt-1">{{ form.role.errors }}</div>
+                {% endif %}
+              </div>
+
+              <!-- 2. Personal Credentials -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">First Name <span class="text-danger">*</span></label>
+                  {{ form.first_name }}
+                  {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Last Name <span class="text-danger">*</span></label>
+                  {{ form.last_name }}
+                  {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- 3. Account Login Details -->
+              <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Username <span class="text-danger">*</span></label>
+                  {{ form.username }}
+                  {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Email Address <span class="text-danger">*</span></label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- 4. Institutional Information -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Institution / Affiliation</label>
+                  {{ form.institution }}
+                  {% if form.institution.errors %}<div class="text-danger small mt-1">{{ form.institution.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Designation / Role</label>
+                  {{ form.designation }}
+                  {% if form.designation.errors %}<div class="text-danger small mt-1">{{ form.designation.errors }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small">State / Geographic Region</label>
+                  {{ form.state_region }}
+                  {% if form.state_region.errors %}<div class="text-danger small mt-1">{{ form.state_region.errors }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- 5. Passwords -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Password <span class="text-danger">*</span></label>
+                  {{ form.password }}
+                  {% if form.password.errors %}<div class="text-danger small mt-1">{{ form.password.errors }}</div>{% endif %}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Confirm Password <span class="text-danger">*</span></label>
+                  {{ form.confirm_password }}
+                  {% if form.confirm_password.errors %}<div class="text-danger small mt-1">{{ form.confirm_password.errors }}</div>{% endif %}
+                </div>
+              </div>
+
+              <!-- Terms and Submit -->
+              <div class="d-grid gap-2 pt-2">
+                <button type="submit" class="lw-btn-hero-primary py-3 fw-bold">
+                  <span>Register &amp; Create Account</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="text-center mt-4 pt-3 border-top small text-muted">
+                Already registered on the platform? 
+                <a href="{% url 'accounts:login' %}" class="fw-bold" style="color: var(--lw-forest-green);">Sign in here</a>
+              </div>
+
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

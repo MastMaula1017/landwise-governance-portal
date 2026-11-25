@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard — {{ role_title }} | LANDWISE{% endblock %}
+
+{% block content %}
+<div class="py-4" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container-fluid px-3 px-xl-5">
+
+    <!-- 1. Top Banner: Role & Profile Summary -->
+    <div class="card border-0 rounded-4 shadow-sm mb-4 p-4 p-lg-5" style="background: linear-gradient(135deg, #1B3A2F 0%, #0F2920 100%); color: #FFFFFF;">
+      <div class="row align-items-center g-4">
+        
+        <div class="col-lg-8">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span class="badge {{ profile.role_badge_class }} py-2 px-3 fw-semibold text-uppercase" style="letter-spacing: 0.08em; font-size: 0.75rem;">
+              {{ profile.get_role_display }}
+            </span>
+            {% if profile.state_region %}
+              <span class="badge bg-white bg-opacity-10 text-white-50 py-2 px-3">
+                <i class="bi bi-geo-alt"></i> {{ profile.state_region }}
+              </span>
+            {% endif %}
+          </div>
+
+          <h1 class="font-serif fw-bold text-white mb-2" style="font-size: clamp(1.8rem, 2.5vw, 2.5rem);">
+            Welcome back, {{ user.get_full_name|default:user.username }}
+          </h1>
+
+          <p class="text-white-50 mb-0" style="max-width: 650px; font-size: 0.95rem;">
+            {% if profile.designation or profile.institution %}
+              <strong>{{ profile.designation }}</strong> {% if profile.institution %}at {{ profile.institution }}{% endif %}
+            {% else %}
+              LANDWISE National Digital Platform Contributor
+            {% endif %}
+          </p>
+        </div>
+
+        <div class="col-lg-4 text-lg-end">
+          <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+            {% if profile.is_platform_admin %}
+              <a href="{% url 'repository:admin_approvals' %}" class="lw-btn lw-btn-gold py-2 px-4 shadow-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 11l3 3L22 4"></path>
+                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span>Admin Review Queue</span>
+              </a>
+              <a href="{% url 'repository:document_upload' %}" class="btn btn-outline-light rounded-pill py-2 px-3">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Upload Paper</span>
+              </a>
+            {% elif profile.can_upload_documents %}
+              <a href="{% url 'repository:document_upload' %}" class="lw-btn lw-btn-gold py-2 px-4 shadow-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>Upload Research Paper</span>
+              </a>
+            {% elif profile.is_government_official %}
+              <a href="{% url 'repository:document_list' %}?type=policy_brief" class="lw-btn lw-btn-gold py-2 px-4 shadow-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <span>Download Policy Digest</span>
+              </a>
+            {% else %}
+              <a href="{% url 'repository:document_list' %}" class="lw-btn lw-btn-gold py-2 px-4 shadow-sm">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <span>Explore Repository</span>
+              </a>
+            {% endif %}
+
+            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-light rounded-pill py-2 px-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Profile Settings</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. Metrics Row (Dynamic Per Role) -->
+    <div class="row g-3 mb-4">
+      {% for m in metrics %}
+      <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-medium">{{ m.label }}</span>
+            <div class="p-2 rounded-3" style="background-color: rgba(31, 107, 74, 0.08); color: var(--lw-emerald-green);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+              </svg>
+            </div>
+          </div>
+          <div class="font-serif fw-bold text-dark mb-1" style="font-size: 2rem; color: var(--lw-forest-green) !important;">
+            {{ m.value }}
+          </div>
+          <div class="small text-muted d-flex align-items-center gap-1">
+            <span class="text-success fw-semibold">{{ m.change }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 3. Main Workspace Console -->
+    <div class="row g-4">
+      
+      <!-- Left 8 Cols: Role-Aware Main Feed / Table -->
+      <div class="col-lg-8">
+        
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+            <div>
+              <h4 class="font-serif fw-bold text-dark mb-1">
+                {{ table_title }}
+              </h4>
+              <p class="text-muted small mb-0">Active working papers, cadastral reports and policy briefs.</p>
+            </div>
+            
+            {% if profile.can_upload_documents %}
+              <a href="{% url 'repository:document_upload' %}" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1">
+                <i class="bi bi-plus-lg"></i> New Submission
+              </a>
+            {% elif profile.is_platform_admin %}
+              <a href="{% url 'repository:admin_approvals' %}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1">
+                <i class="bi bi-check2-circle"></i> Review Queue
+              </a>
+            {% endif %}
+          </div>
+
+          <!-- Documents Feed Table -->
+          {% if table_documents %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">
+                  <tr>
+                    <th scope="col">Document Title</th>
+                    <th scope="col">Domain</th>
+                    <th scope="col">Date</th>
+                    <th scope="col">Status</th>
+                    <th scope="col" class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="small">
+                  {% for doc in table_documents %}
+                  <tr>
+                    <td style="max-width: 300px;">
+                      <a href="{{ doc.get_absolute_url }}" class="fw-bold text-dark text-decoration-none d-block">
+                        {{ doc.title|truncatechars:65 }}
+                      </a>
+                      <span class="text-muted" style="font-size: 0.75rem;">{{ doc.authors|truncatechars:35 }}</span>
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark border">{{ doc.category.name|default:"General" }}</span>
+                    </td>
+                    <td class="text-muted">{{ doc.created_at|date:"d M Y" }}</td>
+                    <td>
+                      <span class="badge {{ doc.status_badge_class }} px-2 py-1">
+                        {{ doc.get_status_display }}
+                      </span>
+                    </td>
+                    <td class="text-end">
+                      <a href="{{ doc.get_absolute_url }}" class="btn btn-sm btn-light border py-1 px-2" title="View Document">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      </a>
+                      <a href="{% url 'repository:document_download' slug=doc.slug %}" class="btn btn-sm btn-outline-success py-1 px-2" title="Download">
+                        <i class="bi bi-download"></i>
+                      </a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="text-center py-4 text-muted">
+              <i class="bi bi-folder2-open" style="font-size: 2rem;"></i>
+              <p class="small mt-2 mb-0">No documents in this list yet.</p>
+            </div>
+          {% endif %}
+
+        </div>
+
+      </div>
+
+      <!-- Right 4 Cols: Role Profile Card & Guidance -->
+      <div class="col-lg-4">
+        
+        <!-- Profile Details Card -->
+        <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <h5 class="font-serif fw-bold text-dark mb-3">Accreditation Profile</h5>
+          
+          <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+            <div class="lw-brand-icon" style="width: 48px; height: 48px; font-size: 1.4rem;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </div>
+            <div>
+              <div class="fw-bold text-dark">{{ user.get_full_name|default:user.username }}</div>
+              <div class="text-muted small">{{ user.email }}</div>
+            </div>
+          </div>
+
+          <div class="small mb-3">
+            <div class="text-muted mb-1">Assigned Role:</div>
+            <div class="fw-bold text-dark">{{ profile.get_role_display }}</div>
+          </div>
+
+          <div class="small mb-3">
+            <div class="text-muted mb-1">Institution / Affiliation:</div>
+            <div class="text-dark">{{ profile.institution|default:"Not specified" }}</div>
+          </div>
+
+          <div class="small mb-4">
+            <div class="text-muted mb-1">State / Jurisdiction:</div>
+            <div class="text-dark">{{ profile.state_region|default:"National / All States" }}</div>
+          </div>
+
+          <a href="{% url 'accounts:profile' %}" class="lw-btn lw-btn-outline w-100 py-2">
+            <span>Edit Profile Information</span>
+          </a>
+        </div>
+
+        <!-- Role Permissions Notice -->
+        <div class="card border-0 shadow-sm rounded-4 p-4" style="background: linear-gradient(135deg, rgba(196, 165, 116, 0.08) 0%, rgba(27, 58, 47, 0.04) 100%); border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8C6F3B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <h6 class="fw-bold text-dark mb-0 font-serif">Platform Role Scope</h6>
+          </div>
+          <p class="small text-muted mb-0" style="line-height: 1.6;">
+            {% if profile.is_platform_admin %}
+              You hold complete oversight over repository documents, user accreditations, category taxonomy, and national analytics.
+            {% elif profile.is_researcher %}
+              You are authorized to submit academic papers, extract keywords from uploaded PDFs, and collaborate on peer discussions.
+            {% elif profile.is_government_official %}
+              You have access to confidential policy directives, state-level cadastral reports, and legislative review feeds.
+            {% elif profile.is_student %}
+              You can explore all peer-reviewed research papers, download open access materials, and save favourite study collections.
+            {% else %}
+              You have public access to all peer-reviewed approved research papers and open governance data.
+            {% endif %}
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}
