@@ -45,11 +45,38 @@ STOPWORDS = set([
 
 def extract_pdf_text_and_meta(file_obj_or_path):
     """
-    Extracts text, page count, and file size from a PDF using PyMuPDF (fitz) or pypdf.
+    Extracts text and page count from a PDF (PyMuPDF / pypdf) or DOCX (zipfile + XML).
     """
     text = ""
     pages_count = 1
-    
+
+    # 0. Handle DOCX files using built-in zipfile + xml.etree.ElementTree
+    is_docx = False
+    if isinstance(file_obj_or_path, str) and file_obj_or_path.lower().endswith('.docx'):
+        is_docx = True
+    elif hasattr(file_obj_or_path, 'name') and str(file_obj_or_path.name).lower().endswith('.docx'):
+        is_docx = True
+
+    if is_docx:
+        try:
+            import zipfile
+            import xml.etree.ElementTree as ET
+            if hasattr(file_obj_or_path, 'seek'):
+                file_obj_or_path.seek(0)
+            with zipfile.ZipFile(file_obj_or_path) as zf:
+                if 'word/document.xml' in zf.namelist():
+                    xml_content = zf.read('word/document.xml')
+                    tree = ET.fromstring(xml_content)
+                    paragraphs = []
+                    for elem in tree.iter():
+                        if elem.tag.endswith('}t') and elem.text:
+                            paragraphs.append(elem.text)
+                    text = " ".join(paragraphs)
+                    pages_count = max(1, len(text) // 1800)
+            return text.strip(), pages_count
+        except Exception:
+            pass
+
     # 1. Try PyMuPDF (fitz)
     try:
         import fitz

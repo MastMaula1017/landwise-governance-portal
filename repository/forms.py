@@ -47,3 +47,14 @@ class DocumentApprovalForm(forms.Form):
             'placeholder': 'If requesting revision or rejecting, specify editorial feedback...'
         })
     )
+
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name', 'description', 'order']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control lw-input', 'placeholder': 'e.g. Urban Land Governance'}),
+            'description': forms.Textarea(attrs={'class': 'form-control lw-input', 'rows': 3, 'placeholder': 'Brief description of this research domain...'}),
+            'order': forms.NumberInput(attrs={'class': 'form-control lw-input', 'min': 0}),
+        }

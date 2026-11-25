@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Policy Categories — LANDWISE{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container-fluid px-3 px-xl-5">
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4 pb-3 border-bottom">
+      <div>
+        <span class="badge bg-warning text-dark py-2 px-3 fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
+          Platform Administration
+        </span>
+        <h1 class="font-serif fw-bold text-dark mb-1" style="font-size: clamp(1.8rem, 2.8vw, 2.4rem);">
+          Policy &amp; Research Categories
+        </h1>
+        <p class="text-muted small mb-0">Manage the national taxonomy used to classify land governance documents.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'repository:admin_approvals' %}" class="lw-btn lw-btn-outline py-2 px-3 small">
+          Review Queue
+        </a>
+        <a href="{% url 'accounts:dashboard' %}" class="lw-btn lw-btn-outline py-2 px-3 small">
+          &larr; Dashboard
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <!-- Left: Add Category Form -->
+      <div class="col-lg-4">
+        <div class="card border-0 rounded-4 shadow-sm p-4" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <h5 class="font-serif fw-bold text-dark mb-3">Add New Category</h5>
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-bold text-dark small">Category Name</label>
+              {{ form.name }}
+              {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold text-dark small">Description</label>
+              {{ form.description }}
+              {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-4">
+              <label class="form-label fw-bold text-dark small">Display Order</label>
+              {{ form.order }}
+              {% if form.order.errors %}<div class="text-danger small mt-1">{{ form.order.errors }}</div>{% endif %}
+            </div>
+            <button type="submit" class="lw-btn lw-btn-primary w-100 justify-content-center py-2">
+              Create Category
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Right: Existing Categories Table -->
+      <div class="col-lg-8">
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="p-4 border-bottom d-flex align-items-center justify-content-between">
+            <h5 class="font-serif fw-bold text-dark mb-0">Active Taxonomy ({{ categories.count }})</h5>
+            <span class="badge bg-light text-muted border">Sorted by Order</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light small text-muted text-uppercase">
+                <tr>
+                  <th class="ps-4">Order</th>
+                  <th>Category</th>
+                  <th>Approved Papers</th>
+                  <th class="text-end pe-4">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for cat in categories %}
+                <tr>
+                  <td class="ps-4 fw-semibold text-muted">{{ cat.order }}</td>
+                  <td>
+                    <div class="fw-bold text-dark">{{ cat.name }}</div>
+                    {% if cat.description %}
+                      <div class="small text-muted">{{ cat.description|truncatechars:90 }}</div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'repository:document_list' %}?category={{ cat.slug }}" class="badge bg-success-subtle text-success border border-success-subtle text-decoration-none px-3 py-2">
+                      {{ cat.approved_documents_count }} papers
+                    </a>
+                  </td>
+                  <td class="text-end pe-4">
+                    <form method="post" action="{% url 'repository:admin_category_delete' pk=cat.pk %}" class="d-inline" onsubmit="return confirm('Delete category {{ cat.name|escapejs }}?');">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted">No categories defined yet.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

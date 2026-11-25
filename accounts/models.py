@@ -80,10 +80,6 @@ class Profile(models.Model):
 @receiver(post_save, sender=User)
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
+        Profile.objects.get_or_create(user=instance)
+    elif not Profile.objects.filter(user=instance).exists():
         Profile.objects.create(user=instance)
-    else:
-        # Save profile if it exists, otherwise create
-        if hasattr(instance, 'profile'):
-            instance.profile.save()
-        else:
-            Profile.objects.create(user=instance)

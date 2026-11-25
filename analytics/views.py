@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.views.generic import TemplateView, View
 from django.http import JsonResponse
 from django.db.models import Count, Sum
-from repository.models import Document, Category
+from repository.models import Document, Category, DocumentActivityLog
 from django.contrib.auth.models import User
 
 
@@ -104,4 +104,6 @@ class AnalyticsDataApiView(View):
             'total_approved': approved.count(),
             'total_views': approved.aggregate(s=Sum('views'))['s'] or 0,
             'total_downloads': approved.aggregate(s=Sum('downloads'))['s'] or 0,
+            'logged_views': DocumentActivityLog.objects.filter(action=DocumentActivityLog.ACTION_VIEW).count(),
+            'logged_downloads': DocumentActivityLog.objects.filter(action=DocumentActivityLog.ACTION_DOWNLOAD).count(),
         })

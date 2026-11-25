@@ -7,8 +7,9 @@ from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.utils import timezone
 from django.core.paginator import Paginator
 
-from .models import Document, Category, Tag
-from .forms import DocumentUploadForm, DocumentApprovalForm
+from .models import Document, Category, Tag, DocumentActivityLog
+from .forms import DocumentUploadForm, DocumentApprovalForm, CategoryForm
+from collaboration.models import Notification
 from .utils import (
     extract_pdf_text_and_meta, 
     auto_extract_keywords, 
@@ -100,9 +101,14 @@ class DocumentDetailView(DetailView):
             if not (is_uploader or is_admin):
                 raise Http404("Document is currently under review.")
         
-        # Increment View Count atomically
+        # Increment View Count atomically and record activity log
         Document.objects.filter(pk=obj.pk).update(views=F('views') + 1)
         obj.refresh_from_db(fields=['views'])
+        DocumentActivityLog.objects.create(
+            document=obj,
+            user=self.request.user if self.request.user.is_authenticated else None,
+            action=DocumentActivityLog.ACTION_VIEW,
+        )
         return obj
 
     def get_context_data(self, **kwargs):
@@ -125,8 +131,13 @@ class DocumentDownloadView(View):
             if not is_authorized:
                 return HttpResponseForbidden("This document is pending approval.")
 
-        # Increment download counter atomically
+        # Increment download counter atomically and record activity log
         Document.objects.filter(pk=doc.pk).update(downloads=F('downloads') + 1)
+        DocumentActivityLog.objects.create(
+            document=doc,
+            user=request.user if request.user.is_authenticated else None,
+            action=DocumentActivityLog.ACTION_DOWNLOAD,
+        )
 
         # Serve file
         try:
@@ -252,6 +263,13 @@ class DocumentApprovalActionView(LoginRequiredMixin, View):
             doc.reviewed_at = timezone.now()
             doc.rejection_reason = ''
             doc.save()
+            if doc.uploaded_by != request.user:
+                Notification.objects.create(
+                    recipient=doc.uploaded_by,
+                    actor=request.user,
+                    verb=f"approved your research submission '{doc.title[:60]}'",
+                    target_url=doc.get_absolute_url(),
+                )
             messages.success(request, f"Document '{doc.title}' has been APPROVED and published to the national repository.")
         elif action == 'reject':
             doc.status = Document.STATUS_REJECTED
@@ -259,6 +277,52 @@ class DocumentApprovalActionView(LoginRequiredMixin, View):
             doc.reviewed_at = timezone.now()
             doc.rejection_reason = reason or "Editorial revision required."
             doc.save()
+            if doc.uploaded_by != request.user:
+                Notification.objects.create(
+                    recipient=doc.uploaded_by,
+                    actor=request.user,
+                    verb=f"requested revisions on '{doc.title[:60]}'",
+                    target_url=doc.get_absolute_url(),
+                )
             messages.warning(request, f"Document '{doc.title}' status updated to REVISION REQUESTED.")
 
         return redirect('repository:admin_approvals')
+
+
+class AdminCategoryManageView(LoginRequiredMixin, View):
+    template_name = 'repository/admin_categories.html'
+
+    def _is_admin(self, user):
+        profile = getattr(user, 'profile', None)
+        return profile and profile.is_platform_admin
+
+    def get(self, request):
+        if not self._is_admin(request.user):
+            messages.error(request, "Access restricted to Platform Administrators.")
+            return redirect('accounts:dashboard')
+        categories = Category.objects.all()
+        form = CategoryForm()
+        return render(request, self.template_name, {'categories': categories, 'form': form})
+
+    def post(self, request):
+        if not self._is_admin(request.user):
+            return HttpResponseForbidden("Unauthorized.")
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            cat = form.save()
+            messages.success(request, f"Policy category '{cat.name}' created successfully.")
+            return redirect('repository:admin_categories')
+        categories = Category.objects.all()
+        return render(request, self.template_name, {'categories': categories, 'form': form})
+
+
+class AdminCategoryDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        profile = getattr(request.user, 'profile', None)
+        if not (profile and profile.is_platform_admin):
+            return HttpResponseForbidden("Unauthorized.")
+        cat = get_object_or_404(Category, pk=pk)
+        name = cat.name
+        cat.delete()
+        messages.info(request, f"Category '{name}' removed.")
+        return redirect('repository:admin_categories')

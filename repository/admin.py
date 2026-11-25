@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Tag, Document
+from .models import Category, Tag, Document, DocumentActivityLog
 
 
 @admin.register(Category)
@@ -24,3 +24,11 @@ class DocumentAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('tags',)
     readonly_fields = ('views', 'downloads', 'file_size', 'file_pages', 'created_at', 'updated_at')
+
+
+@admin.register(DocumentActivityLog)
+class DocumentActivityLogAdmin(admin.ModelAdmin):
+    list_display = ('document', 'user', 'action', 'created_at')
+    list_filter = ('action', 'created_at')
+    search_fields = ('document__title', 'user__username')
+    readonly_fields = ('document', 'user', 'action', 'created_at')

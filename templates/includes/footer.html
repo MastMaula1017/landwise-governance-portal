@@ -46,12 +46,12 @@
       <div class="col-lg-3 col-md-6 col-6">
         <h5 class="lw-footer-heading">Platform Architecture</h5>
         <ul class="lw-footer-links">
-          <li><a href="#repository">Digital Research Repository</a></li>
-          <li><a href="#analytics">National Evidence Analytics</a></li>
-          <li><a href="#collaborate">Inter-Agency Collaboration</a></li>
-          <li><a href="#">Peer-Review &amp; Approval Process</a></li>
-          <li><a href="#">Open Access &amp; Citation Data</a></li>
-          <li><a href="#">API &amp; Data Integration</a></li>
+          <li><a href="{% url 'repository:document_list' %}">Digital Research Repository</a></li>
+          <li><a href="{% url 'analytics:dashboard' %}">National Evidence Analytics</a></li>
+          <li><a href="{% url 'collaboration:hub' %}">Inter-Agency Collaboration</a></li>
+          <li><a href="{% url 'repository:admin_approvals' %}">Peer-Review &amp; Approval Process</a></li>
+          <li><a href="{% url 'core:terms' %}">Open Access &amp; Citation Data</a></li>
+          <li><a href="{% url 'analytics:api_stats' %}">API &amp; Data Integration</a></li>
         </ul>
       </div>
 
@@ -87,13 +87,13 @@
         &copy; 2026 <strong>LANDWISE</strong>. National Digital Platform for Land Governance Research &amp; Policy Innovation. All rights reserved.
       </div>
       <div class="d-flex align-items-center gap-3">
-        <a href="#">Privacy Policy</a>
+        <a href="{% url 'core:privacy' %}">Privacy Policy</a>
         <span>&bull;</span>
-        <a href="#">Terms of Use</a>
+        <a href="{% url 'core:terms' %}">Terms of Use</a>
         <span>&bull;</span>
-        <a href="#">Accessibility Statement</a>
+        <a href="{% url 'core:accessibility' %}">Accessibility Statement</a>
         <span>&bull;</span>
-        <a href="#">Sitemap</a>
+        <a href="{% url 'analytics:dashboard' %}">National Insights</a>
       </div>
     </div>
   </div>

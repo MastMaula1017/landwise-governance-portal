@@ -141,3 +141,24 @@ class Document(models.Model):
             return 'bg-warning-subtle text-warning-emphasis border border-warning-subtle'
         else:
             return 'bg-danger-subtle text-danger border border-danger-subtle'
+
+
+class DocumentActivityLog(models.Model):
+    ACTION_VIEW = 'view'
+    ACTION_DOWNLOAD = 'download'
+    ACTION_CHOICES = [
+        (ACTION_VIEW, 'Document Viewed'),
+        (ACTION_DOWNLOAD, 'Document Downloaded'),
+    ]
+
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='activity_logs')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='document_activities')
+    action = models.CharField(max_length=16, choices=ACTION_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        actor = self.user.username if self.user else 'Anonymous'
+        return f"{actor} {self.action} '{self.document.title[:35]}'"
