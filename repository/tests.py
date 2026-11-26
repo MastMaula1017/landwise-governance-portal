@@ -63,7 +63,9 @@ class RepositorySmartUtilsTests(TestCase):
         self.assertIn("apa", citations)
         self.assertIn("mla", citations)
         self.assertIn("chicago", citations)
+        self.assertIn("bibtex", citations)
         self.assertIn("Tenancy Security Study", citations["apa"])
+        self.assertIn("@article{", citations["bibtex"])
 
 
 class RepositoryWorkflowAndPermissionsTests(TestCase):
@@ -110,12 +112,35 @@ class RepositoryWorkflowAndPermissionsTests(TestCase):
         url = reverse("repository:document_detail", kwargs={"slug": self.approved_doc.slug})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.headers.get("X-Frame-Options"), "SAMEORIGIN")
         self.approved_doc.refresh_from_db()
         self.assertEqual(self.approved_doc.views, 1)
         self.assertEqual(
             DocumentActivityLog.objects.filter(document=self.approved_doc, action=DocumentActivityLog.ACTION_VIEW).count(),
             1,
         )
+
+    def test_uploader_can_edit_and_delete_document(self):
+        self.client.force_login(self.researcher)
+        edit_url = reverse("repository:document_edit", kwargs={"slug": self.pending_doc.slug})
+        resp = self.client.post(edit_url, {
+            "title": "Updated Pending Cadastral Paper",
+            "document_type": "research_paper",
+            "category": self.category.id,
+            "authors": "Dr. Rao",
+            "institution": "NILA",
+            "geography_region": "Odisha",
+            "abstract": "Updated abstract text.",
+            "tag_input": "Cadastral, Titling",
+        })
+        self.assertEqual(resp.status_code, 302)
+        self.pending_doc.refresh_from_db()
+        self.assertEqual(self.pending_doc.title, "Updated Pending Cadastral Paper")
+
+        del_url = reverse("repository:document_delete", kwargs={"slug": self.pending_doc.slug})
+        del_resp = self.client.post(del_url)
+        self.assertEqual(del_resp.status_code, 302)
+        self.assertFalse(Document.objects.filter(pk=self.pending_doc.pk).exists())
 
     def test_student_cannot_access_admin_approvals_or_categories(self):
         self.client.force_login(self.student)

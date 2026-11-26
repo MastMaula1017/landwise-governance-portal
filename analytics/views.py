@@ -1,7 +1,8 @@
+import csv
 import json
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Count, Sum
 from repository.models import Document, Category, DocumentActivityLog
 from django.contrib.auth.models import User
@@ -107,3 +108,24 @@ class AnalyticsDataApiView(View):
             'logged_views': DocumentActivityLog.objects.filter(action=DocumentActivityLog.ACTION_VIEW).count(),
             'logged_downloads': DocumentActivityLog.objects.filter(action=DocumentActivityLog.ACTION_DOWNLOAD).count(),
         })
+
+
+class AnalyticsCsvExportView(View):
+    def get(self, request):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="landwise_repository_analytics.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['Title', 'Document Type', 'Category', 'Authors', 'Region', 'Status', 'Views', 'Downloads', 'Created At'])
+        for doc in Document.objects.select_related('category').order_by('-views'):
+            writer.writerow([
+                doc.title,
+                doc.get_document_type_display(),
+                doc.category.name if doc.category else 'Uncategorized',
+                doc.authors,
+                doc.geography_region,
+                doc.get_status_display(),
+                doc.views,
+                doc.downloads,
+                doc.created_at.strftime('%Y-%m-%d'),
+            ])
+        return response

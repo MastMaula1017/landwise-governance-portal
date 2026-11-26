@@ -9,7 +9,7 @@ from django.core.paginator import Paginator
 
 from .models import Document, Category, Tag, DocumentActivityLog
 from .forms import DocumentUploadForm, DocumentApprovalForm, CategoryForm
-from collaboration.models import Notification
+from collaboration.models import Notification, Favourite
 from .utils import (
     extract_pdf_text_and_meta, 
     auto_extract_keywords, 
@@ -117,6 +117,10 @@ class DocumentDetailView(DetailView):
         context['related_documents'] = get_related_documents(doc, limit=3)
         context['citations'] = generate_citations(doc)
         context['approval_form'] = DocumentApprovalForm()
+        context['is_favourited'] = (
+            self.request.user.is_authenticated
+            and Favourite.objects.filter(user=self.request.user, document=doc).exists()
+        )
         return context
 
 
@@ -326,3 +330,70 @@ class AdminCategoryDeleteView(LoginRequiredMixin, View):
         cat.delete()
         messages.info(request, f"Category '{name}' removed.")
         return redirect('repository:admin_categories')
+
+
+class DocumentEditView(LoginRequiredMixin, View):
+    template_name = 'repository/document_edit.html'
+
+    def _can_manage(self, user, doc):
+        profile = getattr(user, 'profile', None)
+        return doc.uploaded_by == user or (profile and profile.is_platform_admin)
+
+    def get(self, request, slug):
+        doc = get_object_or_404(Document, slug=slug)
+        if not self._can_manage(request.user, doc):
+            return HttpResponseForbidden("You do not have permission to edit this document.")
+        initial_tags = ", ".join(doc.tags.values_list('name', flat=True))
+        form = DocumentUploadForm(instance=doc, initial={'tag_input': initial_tags})
+        form.fields['file'].required = False
+        return render(request, self.template_name, {'form': form, 'document': doc})
+
+    def post(self, request, slug):
+        doc = get_object_or_404(Document, slug=slug)
+        if not self._can_manage(request.user, doc):
+            return HttpResponseForbidden("You do not have permission to edit this document.")
+        form = DocumentUploadForm(request.POST, request.FILES, instance=doc)
+        form.fields['file'].required = False
+        if form.is_valid():
+            updated = form.save(commit=False)
+            uploaded_file = request.FILES.get('file')
+            if uploaded_file:
+                updated.file_size = uploaded_file.size
+            updated.save()
+
+            if uploaded_file:
+                try:
+                    extracted_text, pages = extract_pdf_text_and_meta(updated.file.path)
+                    updated.extracted_text = extracted_text
+                    updated.file_pages = pages
+                except Exception:
+                    pass
+
+            profile = getattr(request.user, 'profile', None)
+            if not (profile and profile.is_platform_admin) and updated.status == Document.STATUS_REJECTED:
+                updated.status = Document.STATUS_PENDING
+                updated.rejection_reason = ''
+            updated.save()
+
+            tag_input = form.cleaned_data.get('tag_input', '').strip()
+            if tag_input:
+                updated.tags.clear()
+                for tag_name in [t.strip() for t in tag_input.split(',') if t.strip()]:
+                    tag, _ = Tag.objects.get_or_create(name=tag_name.title())
+                    updated.tags.add(tag)
+
+            messages.success(request, f"Document '{updated.title}' updated successfully.")
+            return redirect('repository:document_detail', slug=updated.slug)
+        return render(request, self.template_name, {'form': form, 'document': doc})
+
+
+class DocumentDeleteView(LoginRequiredMixin, View):
+    def post(self, request, slug):
+        doc = get_object_or_404(Document, slug=slug)
+        profile = getattr(request.user, 'profile', None)
+        if not (doc.uploaded_by == request.user or (profile and profile.is_platform_admin)):
+            return HttpResponseForbidden("You do not have permission to delete this document.")
+        title = doc.title
+        doc.delete()
+        messages.info(request, f"Document '{title}' has been deleted from the repository.")
+        return redirect('repository:document_list')

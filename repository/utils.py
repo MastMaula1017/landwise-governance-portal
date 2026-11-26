@@ -172,15 +172,24 @@ def get_related_documents(document, limit=4):
 
 def generate_citations(document):
     """
-    Generates standard academic citations (APA, MLA, Chicago) for researchers.
+    Generates standard academic citations (APA, MLA, Chicago, BibTeX) for researchers.
     """
     year = document.publication_date.year if document.publication_date else document.created_at.year
     title = document.title
     authors = document.authors or "LANDWISE Research Directorate"
     institution = document.institution or "National Digital Platform for Land Governance"
+    cite_key = f"landwise_{document.id}_{year}"
 
     return {
         'apa': f"{authors} ({year}). {title}. {institution}.",
         'mla': f'{authors}. "{title}." {institution}, {year}.',
-        'chicago': f'{authors}. "{title}." {institution} ({year}).'
+        'chicago': f'{authors}. "{title}." {institution} ({year}).',
+        'bibtex': (
+            f"@article{{{cite_key},\n"
+            f"  author = {{{authors}}},\n"
+            f"  title = {{{title}}},\n"
+            f"  institution = {{{institution}}},\n"
+            f"  year = {{{year}}}\n"
+            f"}}"
+        ),
     }

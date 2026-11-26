@@ -18,6 +18,11 @@ class AnalyticsAndCorePagesTests(TestCase):
         self.assertIn("logged_views", data)
         self.assertIn("logged_downloads", data)
 
+        csv_resp = self.client.get(reverse("analytics:export_csv"))
+        self.assertEqual(csv_resp.status_code, 200)
+        self.assertIn("text/csv", csv_resp["Content-Type"])
+        self.assertIn("Title,Document Type,Category", csv_resp.content.decode())
+
     def test_footer_info_pages_render(self):
         for name in ("core:privacy", "core:terms", "core:accessibility"):
             resp = self.client.get(reverse(name))

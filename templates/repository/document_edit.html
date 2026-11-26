@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Document — {{ document.title }} | LANDWISE{% endblock %}
+
+{% block content %}
+<div class="py-5" style="background-color: #F8F5EE; min-height: 85vh;">
+  <div class="container py-2">
+    <div class="row justify-content-center">
+      <div class="col-lg-9">
+        <div class="card border-0 rounded-4 shadow-sm overflow-hidden" style="background-color: #FFFFFF; border: 1px solid var(--lw-border-subtle) !important;">
+          <div class="p-4 p-md-5" style="background: linear-gradient(135deg, #1B3A2F 0%, #0F2920 100%); color: #FFFFFF;">
+            <span class="badge bg-warning text-dark py-2 px-3 fw-bold text-uppercase mb-2" style="font-size: 0.72rem;">
+              Document Management
+            </span>
+            <h2 class="font-serif fw-bold text-white mb-1">Edit Research Submission</h2>
+            <p class="text-white-50 small mb-0">Update metadata, keywords, or upload a revised manuscript.</p>
+          </div>
+
+          <div class="p-4 p-md-5">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small">Document Title</label>
+                  {{ form.title }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Document Type</label>
+                  {{ form.document_type }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Policy Category</label>
+                  {{ form.category }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Authors</label>
+                  {{ form.authors }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Institution</label>
+                  {{ form.institution }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Geography / Region</label>
+                  {{ form.geography_region }}
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-bold text-dark small">Publication Date</label>
+                  {{ form.publication_date }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small">Abstract</label>
+                  {{ form.abstract }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small">Keywords (comma-separated)</label>
+                  {{ form.tag_input }}
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-bold text-dark small">Replace File (Optional — PDF or DOCX)</label>
+                  {{ form.file }}
+                  {% if document.file %}
+                    <div class="form-text small text-muted">Current file: {{ document.file.name }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center pt-4 mt-4 border-top">
+                <a href="{{ document.get_absolute_url }}" class="lw-btn lw-btn-outline py-2 px-4 small">Cancel</a>
+                <button type="submit" class="lw-btn lw-btn-primary py-2 px-4">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

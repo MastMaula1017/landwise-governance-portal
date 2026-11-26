@@ -57,6 +57,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'collaboration.context_processors.unread_notifications',
             ],
         },
     },
@@ -114,3 +115,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'accounts:dashboard'
 LOGOUT_REDIRECT_URL = 'core:index'
+
+# Allow same-origin iframes for in-browser PDF preview
+X_FRAME_OPTIONS = 'SAMEORIGIN'

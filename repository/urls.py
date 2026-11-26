@@ -8,6 +8,8 @@ from .views import (
     DocumentApprovalActionView,
     AdminCategoryManageView,
     AdminCategoryDeleteView,
+    DocumentEditView,
+    DocumentDeleteView,
 )
 
 app_name = 'repository'
@@ -19,6 +21,8 @@ urlpatterns = [
     path('categories/', AdminCategoryManageView.as_view(), name='admin_categories'),
     path('categories/<int:pk>/delete/', AdminCategoryDeleteView.as_view(), name='admin_category_delete'),
     path('<slug:slug>/', DocumentDetailView.as_view(), name='document_detail'),
+    path('<slug:slug>/edit/', DocumentEditView.as_view(), name='document_edit'),
+    path('<slug:slug>/delete/', DocumentDeleteView.as_view(), name='document_delete'),
     path('<slug:slug>/download/', DocumentDownloadView.as_view(), name='document_download'),
     path('<slug:slug>/review/', DocumentApprovalActionView.as_view(), name='document_review_action'),
 ]
