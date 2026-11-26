@@ -193,3 +193,39 @@ def generate_citations(document):
             f"}}"
         ),
     }
+
+
+def extract_document_insights(document, max_takeaways=3):
+    """
+    Computes reading metrics and extractive policy takeaways from extracted text or abstract.
+    """
+    source_text = (document.extracted_text or "").strip()
+    if len(source_text) < 80:
+        source_text = (document.abstract or "").strip()
+
+    words = re.findall(r'\b\w+\b', source_text)
+    word_count = len(words)
+    reading_time_mins = max(1, round(word_count / 200)) if word_count else 1
+
+    # Extractive sentence scoring using DOMAIN_TAXONOMY terms
+    all_terms = [t for terms in DOMAIN_TAXONOMY.values() for t in terms]
+    sentences = [s.strip() for s in re.split(r'(?<=[.!?])\s+', source_text) if 45 <= len(s.strip()) <= 320]
+    scored = []
+    for idx, sent in enumerate(sentences):
+        lower_sent = sent.lower()
+        score = sum(2 for term in all_terms if term in lower_sent)
+        if any(w in lower_sent for w in ('recommend', 'policy', 'finding', 'evidence', 'impact', 'percent', '%')):
+            score += 2
+        scored.append((score, -idx, sent))
+
+    scored.sort(reverse=True)
+    takeaways = [item[2] for item in scored[:max_takeaways]]
+    if not takeaways and source_text:
+        takeaways = [source_text[:240] + ('...' if len(source_text) > 240 else '')]
+
+    return {
+        'word_count': word_count,
+        'reading_time_mins': reading_time_mins,
+        'takeaways': takeaways,
+        'top_concepts': auto_extract_keywords(source_text, max_keywords=6),
+    }

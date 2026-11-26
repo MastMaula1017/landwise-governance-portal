@@ -12,6 +12,7 @@ from .utils import (
     auto_extract_keywords,
     extract_pdf_text_and_meta,
     generate_citations,
+    extract_document_insights,
 )
 
 
@@ -66,6 +67,21 @@ class RepositorySmartUtilsTests(TestCase):
         self.assertIn("bibtex", citations)
         self.assertIn("Tenancy Security Study", citations["apa"])
         self.assertIn("@article{", citations["bibtex"])
+
+    def test_extract_document_insights(self):
+        user = User.objects.create_user(username="author2", password="pw")
+        doc = Document.objects.create(
+            title="Cadastral Policy Brief",
+            abstract="This policy study recommends digital cadastral titling for smallholder farmers. Empirical evidence shows land reform improves tenancy security across rural districts.",
+            authors="Dr. A. Rao",
+            uploaded_by=user,
+            status=Document.STATUS_APPROVED,
+            file=SimpleUploadedFile("brief.pdf", b"%PDF-1.4\n%%EOF"),
+        )
+        insights = extract_document_insights(doc)
+        self.assertGreaterEqual(insights["word_count"], 10)
+        self.assertGreaterEqual(insights["reading_time_mins"], 1)
+        self.assertTrue(len(insights["takeaways"]) >= 1)
 
 
 class RepositoryWorkflowAndPermissionsTests(TestCase):

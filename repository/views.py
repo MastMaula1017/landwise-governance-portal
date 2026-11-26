@@ -1,7 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import ListView, DetailView, CreateView, View
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db.models import Q, F
+from django.db.models import Q, F, Count
+from .utils import (
+    extract_pdf_text_and_meta, 
+    auto_extract_keywords, 
+    auto_categorize_document, 
+    get_related_documents, 
+    generate_citations,
+    extract_document_insights,
+)
 from django.contrib import messages
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.utils import timezone
@@ -81,6 +89,7 @@ class DocumentListView(ListView):
         context['search_query'] = self.request.GET.get('q', '')
         context['selected_region'] = self.request.GET.get('region', '')
         context['total_count'] = self.get_queryset().count()
+        context['trending_tags'] = Tag.objects.annotate(doc_total=Count('documents')).filter(doc_total__gt=0).order_by('-doc_total', 'name')[:8]
         return context
 
 
@@ -116,6 +125,7 @@ class DocumentDetailView(DetailView):
         doc = self.object
         context['related_documents'] = get_related_documents(doc, limit=3)
         context['citations'] = generate_citations(doc)
+        context['insights'] = extract_document_insights(doc)
         context['approval_form'] = DocumentApprovalForm()
         context['is_favourited'] = (
             self.request.user.is_authenticated

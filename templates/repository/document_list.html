@@ -76,6 +76,16 @@
         </div>
 
       </form>
+      {% if trending_tags %}
+        <div class="d-flex flex-wrap align-items-center gap-2 pt-3 mt-3 border-top">
+          <span class="small fw-semibold text-muted text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Trending Topics:</span>
+          {% for t in trending_tags %}
+            <a href="{% url 'repository:document_list' %}?q={{ t.name|urlencode }}" class="badge bg-light text-dark border text-decoration-none rounded-pill px-3 py-1">
+              #{{ t.name }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
 
   </div>

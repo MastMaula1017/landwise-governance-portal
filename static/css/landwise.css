@@ -834,3 +834,24 @@ a:hover {
   color: #404B44 !important;
   font-weight: 600;
 }
+
+@media print {
+  .lw-navbar,
+  .lw-footer,
+  .lw-no-print,
+  .breadcrumb,
+  #comments,
+  #pdfReaderSection,
+  .col-lg-3,
+  .col-lg-4 {
+    display: none !important;
+  }
+  .col-lg-8,
+  .col-lg-9 {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body {
+    background: #FFFFFF !important;
+  }
+}
