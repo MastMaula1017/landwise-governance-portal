@@ -35,10 +35,10 @@
     <div class="collapse navbar-collapse" id="lwNavbarNav">
       <ul class="navbar-nav mx-auto mb-2 mb-xl-0 align-items-xl-center">
         <li class="nav-item">
-          <a class="nav-link lw-nav-link active" aria-current="page" href="{% url 'core:index' %}">Home</a>
+          <a class="nav-link lw-nav-link {% if request.resolver_match.app_name == 'core' %}active{% endif %}" href="{% url 'core:index' %}">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link lw-nav-link" href="{% url 'repository:document_list' %}">Repository</a>
+          <a class="nav-link lw-nav-link {% if request.resolver_match.app_name == 'repository' %}active{% endif %}" href="{% url 'repository:document_list' %}">Repository</a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link lw-nav-link dropdown-toggle" href="#" id="researchDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -59,10 +59,10 @@
           </ul>
         </li>
         <li class="nav-item">
-          <a class="nav-link lw-nav-link" href="{% url 'analytics:dashboard' %}">Analytics</a>
+          <a class="nav-link lw-nav-link {% if request.resolver_match.app_name == 'analytics' %}active{% endif %}" href="{% url 'analytics:dashboard' %}">Analytics</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link lw-nav-link" href="{% url 'collaboration:hub' %}">Collaboration</a>
+          <a class="nav-link lw-nav-link {% if request.resolver_match.app_name == 'collaboration' %}active{% endif %}" href="{% url 'collaboration:hub' %}">Collaboration</a>
         </li>
         <li class="nav-item">
           <a class="nav-link lw-nav-link" href="#about">About</a>
@@ -80,7 +80,7 @@
               </svg>
               <span>{{ user.first_name|default:user.username }}</span>
               <span class="badge {{ user.profile.role_badge_class }} text-uppercase" style="font-size: 0.65rem;">
-                {{ user.profile.get_role_display|slice:":10" }}
+                {{ user.profile.role|title }}
               </span>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 py-2 mt-2" style="border-radius: 12px; border: 1px solid var(--lw-border-subtle); min-width: 230px;">
