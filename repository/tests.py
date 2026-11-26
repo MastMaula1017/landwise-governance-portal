@@ -136,6 +136,10 @@ class RepositoryWorkflowAndPermissionsTests(TestCase):
             1,
         )
 
+        preview_resp = self.client.get(reverse("repository:document_preview", kwargs={"slug": self.approved_doc.slug}))
+        self.assertEqual(preview_resp.status_code, 200)
+        self.assertEqual(preview_resp.headers.get("Content-Type"), "application/pdf")
+
     def test_uploader_can_edit_and_delete_document(self):
         self.client.force_login(self.researcher)
         edit_url = reverse("repository:document_edit", kwargs={"slug": self.pending_doc.slug})

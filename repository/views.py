@@ -13,6 +13,8 @@ from .utils import (
 from django.contrib import messages
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.core.paginator import Paginator
 
 from .models import Document, Category, Tag, DocumentActivityLog
@@ -159,6 +161,27 @@ class DocumentDownloadView(View):
         except Exception:
             messages.error(request, "File could not be accessed on the server.")
             return redirect('repository:document_detail', slug=slug)
+
+
+@method_decorator(xframe_options_sameorigin, name='dispatch')
+class DocumentPreviewView(View):
+    def get(self, request, slug):
+        doc = get_object_or_404(Document, slug=slug)
+        if doc.status != Document.STATUS_APPROVED:
+            is_authorized = request.user.is_authenticated and (
+                doc.uploaded_by == request.user or
+                (hasattr(request.user, 'profile') and request.user.profile.is_platform_admin)
+            )
+            if not is_authorized:
+                return HttpResponseForbidden("This document is pending approval.")
+        try:
+            content_type = 'application/pdf' if doc.file_extension == 'pdf' else 'application/octet-stream'
+            response = FileResponse(doc.file.open('rb'), as_attachment=False, content_type=content_type)
+            filename = doc.file.name.split('/')[-1]
+            response['Content-Disposition'] = f'inline; filename="{filename}"'
+            return response
+        except Exception:
+            raise Http404("Document file could not be accessed.")
 
 
 class DocumentUploadView(LoginRequiredMixin, View):

@@ -3,6 +3,7 @@ from .views import (
     DocumentListView, 
     DocumentDetailView, 
     DocumentDownloadView, 
+    DocumentPreviewView,
     DocumentUploadView, 
     AdminApprovalListView, 
     DocumentApprovalActionView,
@@ -24,5 +25,6 @@ urlpatterns = [
     path('<slug:slug>/edit/', DocumentEditView.as_view(), name='document_edit'),
     path('<slug:slug>/delete/', DocumentDeleteView.as_view(), name='document_delete'),
     path('<slug:slug>/download/', DocumentDownloadView.as_view(), name='document_download'),
+    path('<slug:slug>/preview/', DocumentPreviewView.as_view(), name='document_preview'),
     path('<slug:slug>/review/', DocumentApprovalActionView.as_view(), name='document_review_action'),
 ]
